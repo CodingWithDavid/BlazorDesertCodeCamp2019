@@ -1,0 +1,113 @@
+﻿@page "/AddCity"
+
+@using WeatherDemoApp.Data
+
+@inject Services.CityWeatherService service
+@inject NavigationManager NavigationManager
+@inject IModalService ModalService
+@inject IToastService toastService
+
+<h1>@title</h1>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-warning alert-dismissible fade show">
+        <strong>Error!</strong> @error
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<EditForm Model="@city" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <p>
+        <label for="city">City: </label>
+        <InputText id="city" @bind-Value="city.City" />
+        @*<ValidationMessage For="@(() => city.City)" />*@
+    </p>
+    <p>
+        <label for="state">State (Abbr): </label>
+        <InputText id="description" @bind-Value="city.State" />
+        @*<ValidationMessage For="@(() => city.State)" />*@
+    </p>
+    <p>
+        <label for="temp">Temperature: </label>
+        <InputNumber id="accommodation" @bind-Value="city.Temperature" />
+        @*<ValidationMessage For="@(() => city.Temperature)" />*@
+    </p>
+    <p>
+        <label for="classification">Feels Like: </label>
+        <InputSelect id="classification" @bind-Value="city.FeelsLike">
+            <option value="">Select Feels Like ...</option>
+            <option value="Beaching">Beaching</option>
+            <option value="Nice">Nice</option>
+            <option value="Nicer">Nicer</option>
+            <option value="Hot">Hot</option>
+            <option value="Windy">Windy</option>
+            <option value="Bad">Bad</option>
+
+        </InputSelect>
+        @*<ValidationMessage For="@(() => city.FeelsLike)" />*@
+    </p>
+
+    <button type="submit">Submit</button>
+    <button class="btn btn-primary" @onclick="CancelAction">Cancel</button>
+
+</EditForm>
+
+@code {
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+
+    private CityWeatherInfo city = new CityWeatherInfo();
+    string error = "";
+    string title = "Add City Weather";
+
+    protected override void OnInitialized()
+    {
+        if (Parameters == null)
+        {
+            title = "Add City Weather";
+        }
+        else
+        {
+            city = Parameters.Get<CityWeatherInfo>("City");
+            title = "Edit City Weather";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Parameters == null)
+        {
+            error = await service.AddAsync(city);
+            if (string.IsNullOrEmpty(error))
+            {
+                toastService.ShowInfo("City was added successfully", "City Add");
+                //go back to the list page
+                NavigationManager.NavigateTo("CityWeather");
+            }
+        }
+        else
+        {
+            error = await service.UpdateAsync(city);
+            if (string.IsNullOrEmpty(error))
+            {
+                ModalService.Close(ModalResult.Ok<CityWeatherInfo>(city));
+            }
+        }
+    }
+
+    private void CancelAction()
+    {
+        if (Parameters == null)
+        {
+            //go back to the list page
+            NavigationManager.NavigateTo("CityWeather");
+        }
+        else
+        {
+            ModalService.Cancel();
+        }
+    }
+}

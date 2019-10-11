@@ -1,0 +1,30 @@
+﻿@page "/counter"
+
+@inject IToastService toastService
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    int currentCount = 0;
+
+    void IncrementCount()
+    {
+        currentCount++;
+        if (currentCount < 3)
+        {
+            toastService.ShowInfo($"Count is set to {currentCount}", "Counter was Clicked");
+        }
+        else if (currentCount > 2 && currentCount < 5)
+        {
+            toastService.ShowWarning($"Count is set to {currentCount}", "Counter was Clicked");
+        }
+        else
+        {
+            toastService.ShowError($"Count is set to {currentCount}", "Counter was Clicked");
+        }
+    }
+}

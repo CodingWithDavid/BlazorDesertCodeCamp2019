@@ -1,0 +1,57 @@
+﻿
+@inject IModalService Modal
+
+<div id="container" class="messagebox_containor">
+
+    <div id="image" class="image_inline">
+        <img src="@icon" alt="" height="100" width="100" />
+    </div>
+
+    <div id="texts" class="messagebox_texts">
+        <strong>@title</strong>
+    </div>
+
+</div>
+
+@code {
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+
+    private int currentCount = 0;
+    string title = "Current Count is: ";
+    string icon = "images/info.jpg";
+    string altIcon = "info";
+
+    protected override void OnInitialized()
+    {
+        if (Parameters == null)
+        {
+            title = "User Notification";
+        }
+        else
+        {
+            currentCount = Parameters.Get<int>("CurrentCount");
+            title = $"Current Count is {currentCount}";
+            if(currentCount < 3)
+            {
+                icon = "images/info.jpg";
+                altIcon = "Info";
+            }
+            else if(currentCount > 2 && currentCount < 5)
+            {
+                icon = "images/warn.jpg";
+                altIcon = "Warning";
+            }
+            else
+            {
+                icon = "images/error.jpg";
+                altIcon = "Error";
+            }
+        }
+    }
+
+    void ModalClosed(ModalResult modalResult)
+    {
+        StateHasChanged();
+        Modal.OnClose -= ModalClosed;
+    }
+}

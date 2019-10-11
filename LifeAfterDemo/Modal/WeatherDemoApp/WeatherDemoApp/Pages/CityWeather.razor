@@ -1,0 +1,96 @@
+﻿@page "/CityWeather"
+
+@using WeatherDemoApp.Data
+
+@inject Services.CityWeatherService service
+@inject NavigationManager NavigationManager
+@inject IModalService Modal
+@inject IToastService toastService
+
+<h1>City Weather</h1>
+
+<p>What's the weather like in other places</p>
+
+@if (cityInfo == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th @onclick="SortByCity">City</th>
+                <th>State</th>
+                <th>Temp. (F)</th>
+                <th>Feels Like</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var city in cityInfo)
+            {
+                <tr>
+                    <td @onclick="@(e => ShowModal(city))">@city.City</td>
+                    <td>@city.State</td>
+                    <td>@city.Temperature</td>
+                    <td>@city.FeelsLike</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-primary" @onclick="AddCity">Add New City</button>
+
+@code {
+    List<CityWeatherInfo> cityInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cityInfo = await service.GetWeatherAsync();
+    }
+
+    protected void AddCity()
+    {
+        NavigationManager.NavigateTo("AddCity");
+    }
+
+    private async Task SortByCity()
+    {
+        cityInfo = cityInfo.OrderBy(o => o.City).ToList();
+        await Task.CompletedTask;
+    }
+
+    //handle the Modal
+    void ShowModal(CityWeatherInfo inCity)
+    {
+        var parameters = new ModalParameters();
+
+        if (inCity != null)
+        {
+            parameters.Add("City", inCity);
+
+            Modal.OnClose += ModalClosed;
+            Modal.Show("", typeof(AddCity), parameters);
+        }
+    }
+
+    void ModalClosed(ModalResult modalResult)
+    {
+        Console.WriteLine("Modal has closed");
+
+        if (modalResult.Cancelled)
+        {
+            toastService.ShowInfo("City update was Cancelled", "City Update");
+        }
+        else
+        {
+            toastService.ShowInfo("City update was sucessfull", "City Update");
+            cityInfo = service.GetAll();
+            StateHasChanged();
+        }
+
+        Modal.OnClose -= ModalClosed;
+    }
+
+}
