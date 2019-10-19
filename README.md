@@ -1,4 +1,4 @@
-# Blazor UI tips and tricks
+# Slides and code from Desert Code Camp 2019
 
 This project was created to provide the slides and the code for my presestions at the Desert Code Campe 2019.
 
